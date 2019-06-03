@@ -307,7 +307,46 @@ ord('a')函数：　将单个字符转会为对应的ASCII码值
 
 
 # 何时 弃用列表，选择其他 序列类型
+## set集合
+set(集合)专为检查元素是否存在做过优化．
+但是set并不是序列，移位set是无序的．
+如果你的代码里，包含操作（比如检查一个元素是否出现在一个集合中）的频率很高，　用set(集合)会更合适．
 
+## 数组 array.array
+如果需要一个只包含数字的列表，，那么array.array比list更高效．
+```python
+from   array   import   array
+a  = array('d', (random() for i in range(1000)))
+##　保存数据到文件中
+fp = open('xxx.bin', 'wb')
+a.tofile(fp)
+fp.close()
+##     读取文件数据
+b = array('d')
+fp = open('xxx.bin', 'rb')
+b.fromfile(fp, 1000)
+fp.close()
+```
+array.tofile将文件以字节形式保存，比把文件以文本形式保存　快　７ 倍，　存储空间节省2 倍．
+array.fromfile从一个二进制中读取1000万个双浮点数只需要0.1秒，　这比从文本文件里读取（以文本读取，再用float()强制转换）的速度要快60倍
 
+# pickle模块
+快速序列化数字类型的方法（类似于array.tofile，　array.fromfile）
+pickle.dump处理浮点数组的速度几乎和array.tofile一样快.
+不同的是，**pickle**可以处理几乎所有的内置数字类型，包括复数，　嵌套集合，甚至用户自定义的类．
 
+# memoryview 内置视图
+内置类，能够让用户在不复制内容的情况下操作同一个数组的不同切片，即可以在数据结构之间共享内存．
+与numpy类似，但是memoryview处理的数据结构可以是任何形式．
 
+# numpy 和　scipy
+numpy: 多维数组和矩阵
+scipy: 科学计数算法
+```python
+numpy.save(xxx, xxx) 将数组存在后缀为.npy的二进制文件中．
+numpy.load() 内存映射机制，　它将我们在内存不足的情况下仍然可以对数组做切片．
+```
+# 队列
+## 双向队列 collections.deque
+线程安全，可以快速从两端添加或者删除元素的数据类型．
+## 其他队列　
