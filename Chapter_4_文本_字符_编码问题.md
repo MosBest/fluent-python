@@ -400,5 +400,19 @@ python比较任何类型的序列时，会一一比较序列里的各个元素�
 如果字符是ASCII字符，那么就会很好理解。但是如果比较的是非ASCII字符(比如 对 "汉字进行排序,比较"),那么就会很难处理。
 
 **方法一：**
-在python中， 非ASCII文本的标准排序方式是使用locale.strxfrm函数，根据locale模块的文档，locale.strxfrm函数会**“把字符串转化为适合所在区域进行比较的方式”**（哎，读都读不懂）
-就是，先调用locale.setlocale() 设定合适的区域设置，（然后祈祷）
+在python中， 非ASCII文本的标准排序方式是使用locale.strxfrm函数，根据locale模块的文档，locale.strxfrm函数会 **“把字符串转化为适合所在区域进行比较的方式”**（哎，读都读不懂）
+就是，先调用locale.setlocale() 设定合适的区域设置，（然后祈祷操作系统支持这项设置）, 最后把 locale.strxfrm 作为 sorted()的key=的参数即可.
+```python
+import locate
+locate.setlocale(xxx, 'xxxxx')
+s = ['sd', 'd', 'asdas', 'edad', 'asdqqe', 'as']
+sorted(s, key=locale.strxfrm)
+```
+**方法二：**
+使用PyUCA库,这是 Unicode排序算法(UCA) 的纯python实现.
+```python
+import pyuca
+coll = pyuca.Collator()
+s =  ['sd', 'd', 'asdas', 'edad', 'asdqqe', 'as']
+sorted(s, key = coll.sort_key)
+```
