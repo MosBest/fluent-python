@@ -287,3 +287,118 @@ print("aaa")
 最后一种方法： 使用侦查包
 即 统一字符编码侦测包Chardet (https://pypi.python.org/pypi/chardet), 它能识别所支持的30种编码.
 Chardet是一个python库，可以在程序中运行，也提供命令行工具chardetect
+
+# 工作中处理文本文件的方式（Unicode三明治建议）
+1. 要尽早把输入(比如 读取文件时)的字节序列解码成字符串.
+2. 在程序的业务逻辑中，只能处理字符串对象，一定不能编码或者解码。
+3. 对输出(写文件到磁盘中)来说，则要尽量晚地把字符串编码为字节序列。
+
+# 读/写文件时，千万不要依赖默认编码
+如果打开文件时，没有指定编码参数，会使用区域设置中的默认编码，而且有的时候使用那个也能够正确读取文件。但是，如果你的代码中要生成文件，而字节的内容取决于平台或同一个平台的区域设置，那么就可能导致兼容问题.
+
+**因此，打开文件是始终应该明确传入encoding=参数，因为不同的设备使用的默认编码可能不同，有时隔一天也会发生变化。**
+
+## 使用open()函数打开文件
+一般的当你打开一个文件的时候，如果你没有明确传入encoding=参数，那么系统就会以默认的编码读取文件，这就又能出现问题.
+
+```python
+>>>fp = open('cafe.txt', 'w', encoding = 'utf-8') #以utff-8格式打开文本,且是写模式'w', 那么就是 在将字符串写入到文本中时，字符串的编码格式是 utf-8
+>>>fp.write('丁') # '丁'的字节序列的编码是 utf-8
+>>>fp.close()
+
+>>>fp2 = open('cafe.txt') # 这里重新打开cafe.txt文本文件，但是有没有明确找出这个文本文件的是用什么编码格式打开的
+>>>fp2.encoding #发现fp2现在的文本编码格式使用的是 cp1252，而不是我们前面写入文本的utf-8
+'cp1252'
+>>>fp2.read()
+(结果可能是乱码)
+```
+## open() 的二进制模型 'rb' 'wb'
+如果你的文件就是二进制文件（如 光栅图像）,那么你就用二进制模式打开二进制文件; 否则，**一定不要在二进制模式中打开文本文件**.
+哪怕你想观察编码格式，你也应该使用Chardet， 而不是重新造轮子。
+
+# 遵从Unicode 三明治的建议, 而且始终在程序中显示指定编码，将会避免很多问题。
+
+# 文本规范化 （解决同一字符串不同表示导致不相等的情况）
+(中文键盘还不知道怎么敲出组合字符，西方输入法应该可以，比如希腊文字等等)
+所以此小节简单介绍，具体看书P99,4.小节
+组合字符，比如说某些字符的上面还会加一个变音字符，在打印到屏幕中时是作为一个整体。
+
+而Unicode 里面就包含有组合字符.
+
+在处理组合字符的时候，同一个组合字符，不同的书写方式，但是python看到的是不同的码位序列，则两个相同的组合字符使用 == 比较时，不相等。
+
+因此，我们需要对Unicode 进行规范化，使得 不同书写方式的同一个组合字符 ，他们的码位序列应该是相同的，使用==比较时应该返回True.
+
+## 使用 unicodedata.normalize函数提供Unicode规范化
+**from unicodedata import normalize**
+
+unicodedata.normalize函数第一个参数有4种情况，即总共有4种模式进行规范化。'NFC', 'NFD', 'NFKC', 'NFKD'。
+
+@. **'NFC': 使用最少的码位构成等价的字符串**
+```python
+from unicodedata import normalzie
+s1 = "xxx xxx"
+normalize('NFC', s1)
+```
++. 西方键盘用户默认是NFC形式，但是安全起见，保存文件之前，最好使用normalize('NFC', s1)清洗字符串.
++. 使用NFC时，有些单字符可能会被规范成另一个单字符.
+
+@. **'NFD': 把组合字符分解成基字符和单独的组合字符**
+
+@. **'NFKC'** 和 **'NFKD'**
+**'NFKC'**  或者 **'NFKD'** 不兼容兼容字符，它会将各个兼容字符替换成一个或多个“分解了的字符”。
+因此**'NFKC'**  或者 **'NFKD'**有时会损失或者曲解信息，应当
+
+# 字符串 大写 转为 小写
+方法1： s.casefold() # python3.3新增
+方法2：s.lower()
+python3.4起， s.casefold() 和 s.lower()得到不同结果的有116个码位。这只占Unicode的0.11%.
+
+# 规范化文本匹配实用函数
+## 规范化 但 区分大小写
+```python
+from unicodedata import normalize
+
+def nfc_equal(str1, str2):
+	return normalize('NFC', str1) == normalize('NFC', str2)
+
+s1 = 'xxx xxx'
+s2 = 'xxx xxx'
+print(nfc_equal(s1, s2))
+```
+## 规范化 但 不区分大小写
+```python
+from unicodedata import normalize
+
+def fold_equal(str1, str2):
+	return (normalize('NFC', str1).casefold() == normalize('NFC', str2).casefold())
+	
+s1 = 'xxx xxx'
+s2 = 'xxx xxx'
+print(fold_equal(s1, s2))
+
+```
+
+# 去掉变音符号
+```python
+import unicodedata
+import string
+
+def shave_marks(txt):
+	"""去掉全部变音符号"""
+	norm_txt = unicodedata.normalize('NFD', txt)
+	shaved = ''.join(c for c in norm_txt  
+					if not unicodedata.combining(c))
+	return unicodedata.normalize('NFC', shaved)
+```
+
+**书中还有其他的功能，但是好像都是对西方希腊等字符的处理，这里就不写了，有需要再来看看即可**
+
+# Unicode 文本排序
+python比较任何类型的序列时，会一一比较序列里的各个元素。
+如果比较的是字符串，那么其实比较的是各个字符的码位。
+如果字符是ASCII字符，那么就会很好理解。但是如果比较的是非ASCII字符(比如 对 "汉字进行排序,比较"),那么就会很难处理。
+
+**方法一：**
+在python中， 非ASCII文本的标准排序方式是使用locale.strxfrm函数，根据locale模块的文档，locale.strxfrm函数会**“把字符串转化为适合所在区域进行比较的方式”**（哎，读都读不懂）
+就是，先调用locale.setlocale() 设定合适的区域设置，（然后祈祷）
