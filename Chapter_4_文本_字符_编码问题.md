@@ -416,3 +416,30 @@ coll = pyuca.Collator()
 s =  ['sd', 'd', 'asdas', 'edad', 'asdqqe', 'as']
 sorted(s, key = coll.sort_key)
 ```
+# Unicode 字符信息查询
+Unicode标准提供了一个完整的数据库(许多格式化的文本文件)，它记录了Unicode 每一个字符的信息。
+包括 码位与字符名称之间的映射，各个字符的元数据，字符之间的关系，还包括 字符是否可以打印，是否为字母，是不是数字，等等很多东西。
+**字符串中很多函数操作都是看这些信息做判断的**
+**使用unicodedata模块， 我们也可以操作 Unicode标准中每个字符的信息了**
+
+
+# unicodedata模块
+**使用unicodedata模块， 我们也可以操作 Unicode标准中每个字符的信息了**
+详细文档说明: https://docs.python.org/3/library/unicodedata.html
+
+# regex模块
+由于**re模块对Unicode的支持并不充分**, 所以 PyPI中有个新开发的regex模块，它的最终目的是取代re模块, 以提供更好的Unicode支持。
+
+# re模块
+正则表达式 re模块， 字节序列 和 字符串 二者都 构建正则表达式。
+只是，如果使用字节序列构建正则表达式， '\d' 和 '\w' 等模式只能匹配ASCII字符；
+相比之下，如果是字符串模式， 就能够匹配ASCII之外的Unicode数字和字母。
+
+**re模块文档声明:**https://docs.python.org/zh-cn/3/library/re.html
+https://docs.python.org/3/library/re.html
+
+# os模块
+如果你的文件名是使用字节序列，那么 GNU/Linux内核可能不能编码。
+
+而 os模块中的所有函数，文件名或路径名参数既能使用字符串，也能使用 字节序列。
+（也不知道怎么用，需要时来看这一小节4.9.2小节  P111）
