@@ -546,8 +546,9 @@ def _(n):
     print("context Intergral")
     return 0
 
+#可以叠加多个register装饰器，让同一个函数支持不同类型
 @f.register(tuple)
-@f.register(abc.MutableSequence)
+@f.register(abc.MutableSequence) #可以叠加多个register装饰器，让同一个函数支持不同类型
 def _(seq):
     print("context tuple")
     return 0
@@ -558,4 +559,34 @@ def _(seq):
 只要可能，register()里面尽可能使用抽象基类(numbers.Intergral)不要处理具体实现(int)。这样，代码支持的兼容类型更广泛。
 
 `@singledispatch` 的优点是支持模块化扩展: 各个模块可以为它支持的各个类型注册(f.register)一个专门函数(也可以理解为重载一个专门的函数)。
+
+
+
+#  叠放装饰器
+
+即　在一个函数下面叠放多个装饰器。
+
+把@d1 和 @d2 两个装饰器按顺序应用到f函数上，作用相当于 f = d1(d2(f))
+
+即
+
+```python
+@d1
+@d2
+def f():
+    print('f')
+```
+
+等同于
+
+```python
+def f():
+    print('f')
+
+f = d1(d2(f))
+```
+
+
+
+#  参数化装饰器
 
