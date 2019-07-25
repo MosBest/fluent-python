@@ -590,3 +590,114 @@ f = d1(d2(f))
 
 #  参数化装饰器
 
+解析源码中的装饰器时，python把被装饰的函数作为第一个参数传给装饰器函数。那么怎样让装饰器接受其他参数呢？
+
+答案是：创建一个装饰器工厂函数，把参数传给它，它会返回一个装饰器，然后再把它应用到要装饰的函数中。
+
+所谓的装饰器工厂函数，其实就是一个返回装饰器的函数。它是一个函数，对装饰器的封装，可以接受任意参数，在函数内部对参数进行处理，然后返回　根据参数选择的装饰器。
+
+比如 :
+
+```python
+def f1_factory(active=True):# f1_factory就是一个装饰器工厂函数
+    
+    # do some thing 
+    
+    ###################################
+    # 装饰器的实现
+    def clock(func):
+        def clocked(*args, **kwargs):
+            # do some things
+            # 比如　if active: xxx else xxx
+            result = func(*args, **kwargs)
+            # do some things
+            return result
+        return clocked
+    ###################################
+    
+    # do other things
+    
+    return clock #返回装饰器
+```
+
+f1_factory就是一个装饰器工厂函数, 它内部封装了一个装饰器clock, 可以接收参数，并返回这个装饰器。
+
+所以，使用方法是:
+
+```python
+@f1_factory(active=False)
+def f2():
+    print('running f2')
+
+@f1_factory()
+def f3():
+    print('running f3')
+```
+
+上面的代码等价于:
+
+```python
+@clock
+def f2():
+    print('running f2')
+
+@clock
+def f3():
+    print('running f3')
+```
+
+因为
+
+```python
+@f1_factory(active=False) 是由两部分组成: 一个是符号@ , 另一个是 f1_factory(active=False)
+而f1_factory(active=False)就是　函数在输入参数active=False执行后的返回值clock (要知道，f1_factory是函数名，括号()是调用对象的运算符，f1_factory()　就是在执行函数)
+
+也就是
+@f1_factory(active=False) 是由两部分组成: 一个是符号@ , 另一个是 f1_factory(active=False)
+而f1_factory(active=False)　是　clock 
+所以@f1_factory(active=False)　就是　@clock
+```
+
+所以，参数化的装饰器其实核心思想是对　**函数的调用**。
+
+综上所述，使用参数化的装饰器的方法是:
+
+1. 对装饰器进行封装，得到一个新的函数，这个函数可以接收参数，但返回值必须是　封装的装饰器。
+
+```python
+def f1_factory(active=True):
+    
+    # do some thing 
+    
+    ###################################
+    # 装饰器 clock 的实现
+    def clock(func):
+        def clocked(*args, **kwargs):
+            # do some things
+            # 比如　if active: xxx else xxx
+            result = func(*args, **kwargs)
+            # do some things
+            return result
+        return clocked
+    ###################################
+    
+    # do other things
+    
+    return clock #返回装饰器
+```
+
+2. 由于 f1_factory(xxx) 的返回值是clock，　所以
+
+```python
+@f1_factory(xxx) 　就是　@clock
+```
+
+
+
+3. 使用
+
+```python
+@f1_factory(active=False)
+def f2():
+    print('running f2')
+```
