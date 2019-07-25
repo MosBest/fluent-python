@@ -701,3 +701,24 @@ def f1_factory(active=True):
 def f2():
     print('running f2')
 ```
+
+
+
+
+
+#  locals() 函数
+
+local 函数会以字典类型返回当前位置的全部局部变量。
+
+```python
+>>> a = 1
+>>> def f():
+...     b = 2
+...     q = [1, 2]
+...     print("locals() = ", locals())
+... 
+>>> f()
+locals() =  {'q': [1, 2], 'b': 2}
+
+```
+
