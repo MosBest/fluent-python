@@ -51,4 +51,37 @@ b = 5
 
 2. 
 
-   
+
+
+```python
+>>> a = 5
+>>> b = 5
+>>> a == b
+True
+>>> a is b
+True
+>>> a = [1,2,3]
+>>> b = [1,2,3]
+>>> a == b
+True
+>>> a is b
+False
+>>> a = 5
+>>> b = 
+  File "<stdin>", line 1
+    b = 
+       ^
+SyntaxError: invalid syntax
+>>> b = 5
+>>> id(a)
+10910528
+>>> id(b)
+10910528
+>>> c = 5
+>>> id(5)
+10910528
+>>> id(c)
+10910528
+
+```
+
